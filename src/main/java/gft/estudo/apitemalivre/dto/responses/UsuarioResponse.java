@@ -13,9 +13,8 @@ public class UsuarioResponse {
 
     public Long id;
     public String login;
-    public Role role;
 
     public static UsuarioResponse fromUsuario(Usuario usuario){
-        return new UsuarioResponse(usuario.getId(), usuario.getLogin(), usuario.getRole());
+        return new UsuarioResponse(usuario.getId(), usuario.getLogin());
     }
 }

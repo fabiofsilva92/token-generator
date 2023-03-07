@@ -3,18 +3,16 @@ package gft.estudo.apitemalivre.services;
 import gft.estudo.apitemalivre.dto.UsuarioDTO;
 import gft.estudo.apitemalivre.dto.responses.UsuarioResponse;
 import gft.estudo.apitemalivre.entities.Usuario;
-import gft.estudo.apitemalivre.entities.UsuarioCustomUserDetails;
 import gft.estudo.apitemalivre.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-public class UsuarioService implements UserDetailsService {
+public class UsuarioService{
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -32,6 +30,11 @@ public class UsuarioService implements UserDetailsService {
         return usuario.get();
     }
 
+    public List<UsuarioDTO> getUsuarios(){
+        List<UsuarioDTO> collect = usuarioRepository.findAll().stream().map(u -> new UsuarioDTO().fromModel(u)).collect(Collectors.toList());
+        return collect;
+    }
+
 
     public Usuario buscarUsuarioPorID(Long idUsuario) {
         Optional<Usuario> byId = usuarioRepository.findById(idUsuario);
@@ -42,14 +45,8 @@ public class UsuarioService implements UserDetailsService {
 
     public UsuarioResponse createUser(UsuarioDTO usuario){
         Usuario usuario1 = Usuario.standardFromDTO(usuario);
-        usuario1.setRole(roleService.getRoleById(2l));
         return UsuarioResponse.fromUsuario(usuarioRepository.save(usuario1));
     }
 
-
-    @Override
-    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        return new UsuarioCustomUserDetails(buscarPorLogin(login));
-    }
 
 }

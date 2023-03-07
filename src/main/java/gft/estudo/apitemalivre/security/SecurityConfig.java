@@ -1,8 +1,5 @@
 package gft.estudo.apitemalivre.security;
 
-import gft.estudo.apitemalivre.filter.FiltroAutenticacao;
-import gft.estudo.apitemalivre.services.AutenticacaoService;
-import gft.estudo.apitemalivre.services.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +12,12 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @EnableWebSecurity
 @Configuration
@@ -25,10 +26,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
     @Autowired
-    private UsuarioService usuarioService;
+    private UserDetailsService usuarioService;
 
     @Autowired
-    private AutenticacaoService autenticacaoService;
+    private JWTUtil jwtUtil;
+
+    private final String [] PUBLIC_MATCHERS = {
+            "/v1/auth/**",
+            "/h2-console/**",
+            "/login/**"
+    };
 
     @Override
     @Bean
@@ -48,13 +55,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        http.headers().frameOptions().disable();
+
+        http.cors();
         http.csrf().disable()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST,"/v1/auth").permitAll()
+                .antMatchers(HttpMethod.POST, PUBLIC_MATCHERS).permitAll()
+                .antMatchers(HttpMethod.GET, PUBLIC_MATCHERS).permitAll()
                 .anyRequest().authenticated()
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and().addFilterBefore(new FiltroAutenticacao(autenticacaoService, usuarioService), UsernamePasswordAuthenticationFilter.class);
+                .and().addFilter(new JWTAuthenticationFilter(authenticationManager(), jwtUtil));
+    }
 
-
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(){
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
+        return source;
     }
 }

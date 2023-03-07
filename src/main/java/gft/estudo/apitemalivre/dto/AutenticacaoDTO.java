@@ -5,6 +5,9 @@ public class AutenticacaoDTO {
     private String login;
     private String password;
 
+    public AutenticacaoDTO() {
+    }
+
     public String getLogin() {
         return login;
     }

@@ -2,9 +2,13 @@ package gft.estudo.apitemalivre.entities;
 
 
 import gft.estudo.apitemalivre.dto.UsuarioDTO;
+import gft.estudo.apitemalivre.enums.RoleEnum;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Entity
@@ -17,21 +21,23 @@ public class Usuario {
     private String login;
     private String password;
 
-    @ManyToOne
-    private Role role;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name="TB_ROLES")
+    private Set<Integer> roles = new HashSet<>();
 
     public Usuario() {
+        addRole(RoleEnum.USUARIO);
     }
 
-    public Usuario(Long id, String login, String password, Role role) {
+    public Usuario(Long id, String login, String password) {
         this.id = id;
         this.login = login;
         this.password = password;
-        this.role = role;
+        addRole(RoleEnum.USUARIO);
     }
 
     public static Usuario standardFromDTO(UsuarioDTO usuarioDTO){
-        return new Usuario(null, usuarioDTO.getUser(), new BCryptPasswordEncoder().encode(usuarioDTO.getPassword()), null);
+        return new Usuario(null, usuarioDTO.getUser(), new BCryptPasswordEncoder().encode(usuarioDTO.getPassword()));
     }
 
     public Long getId() {
@@ -58,11 +64,15 @@ public class Usuario {
         this.password = password;
     }
 
-    public Role getRole() {
-        return role;
+    public Set<RoleEnum> getRoles() {
+        return roles.stream().map(x -> RoleEnum.toEnum(x)).collect(Collectors.toSet());
     }
 
-    public void setRole(Role role) {
-        this.role = role;
+    public void setRole(Set<RoleEnum> role) {
+        this.roles = roles;
+    }
+
+    public void addRole(RoleEnum roleEnum){
+        roles.add(roleEnum.getCod());
     }
 }
