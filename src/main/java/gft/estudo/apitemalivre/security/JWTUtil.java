@@ -3,6 +3,7 @@ package gft.estudo.apitemalivre.security;
 import gft.estudo.apitemalivre.dto.AutenticacaoDTO;
 import gft.estudo.apitemalivre.dto.TokenDTO;
 import gft.estudo.apitemalivre.repositories.UsuarioRepository;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +71,36 @@ public class JWTUtil {
 //                .withExpiresAt(expirar)
 //                .withSubject(principal.getId().toString())
 //                .sign(algorithm);
+    }
+
+    public boolean checkToken(String token) {
+        Claims claims = getClaims(token);
+        if(claims != null){
+            String login = claims.getSubject();
+            Date expirationDate = claims.getExpiration();
+            Date now = new Date(System.currentTimeMillis());
+
+            if(login != null && expirationDate != null && now.before(expirationDate)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Claims getClaims(String token) {
+        try {
+            return Jwts.parser().setSigningKey(secret.getBytes()).parseClaimsJws(token).getBody();
+        }catch (Exception e){
+            return null;
+        }
+    }
+
+    public String getLogin(String token) {
+        Claims claims = getClaims(token);
+        if(claims != null) {
+            return claims.getSubject();
+        }
+        return null;
     }
 
 //    public boolean verificaToken(String token){

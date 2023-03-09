@@ -34,7 +34,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final String [] PUBLIC_MATCHERS = {
             "/v1/auth/**",
             "/h2-console/**",
-            "/login/**"
+            "/login/**",
+            "/v1/test"
     };
 
     @Override
@@ -66,6 +67,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and().addFilter(new JWTAuthenticationFilter(authenticationManager(), jwtUtil));
+        http.addFilter(new JWTAuthorizationFilter(authenticationManager(), jwtUtil, usuarioService));
     }
 
     @Bean

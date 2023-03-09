@@ -1,5 +1,6 @@
 package gft.estudo.apitemalivre.security;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gft.estudo.apitemalivre.dto.AutenticacaoDTO;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,6 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
@@ -49,5 +52,26 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String login = ((UserSS) authResult.getPrincipal()).getLogin();
         String token = jwtUtil.gerarToken(login);
         response.addHeader("Authorization", "Bearer "+token);
+        Map<String, String> accessToken = new HashMap<>();
+
+        accessToken.put("access_token", token);
+        accessToken.put("message", "Authentication successful");
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(new ObjectMapper().writeValueAsString(accessToken));
+//        accessToken.put("acess_token", token);
+//        response.getWriter().write(accessToken.toString());
+//        response.getWriter().print(objToJson(accessToken));
+    }
+
+    private static String objToJson(Object obj) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            System.out.println("Error when convert Obj to JSON:"+e.getMessage());
+        }
+        return "";
     }
 }
